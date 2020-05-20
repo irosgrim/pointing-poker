@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pointing poker</title>
+</head>
+<div id="messages"></div>
+
+<body>
+  <h1>Pointing poker</h1>
+  <script>
+    const messages = document.getElementById('messages');
+    let socket = new WebSocket('ws://localhost:8000');
+    socket.onmessage = (event) => {
+      messages.innerHTML += event.data;
+    }
+    socket.onopen = () => {
+      console.log('Connected!')
+      socket.send(42)
+    }
+  </script>
+</body>
+
+</html>
