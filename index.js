@@ -9,7 +9,7 @@ const ws = require('ws');
 const wss = new ws.Server({ noServer: true });
 
 let i = 0;
-
+let clients = new Set();
 app.use(express.static('www'));
 
 
@@ -23,16 +23,24 @@ wss.on('connection', wsConnection);
 
 function wsConnection(ws, req) {
   i += 1;
-  ws.id = "unique Id " + uid(4);
-  const randomRoomId = uid(8);
   ws.room = []
+  const currentClients = [];
 
   let urlQuery = url.parse(req.url, true).query;
-  if (urlQuery.room !== undefined) {
-    ws.room = [...ws.room, urlQuery.room];
+  if (urlQuery.room !== undefined && urlQuery.name !== undefined) {
+    if (currentClients.indexOf(urlQuery.name) > -1) {
+      ws.send('the name is taken');
+      return;
+    } else {
+      ws.room = [...ws.room, urlQuery.room];
+      ws.name = urlQuery.name;
+    }
+    wss.clients.forEach(client => currentClients.push(client.name));
   }
+  console.log(currentClients)
+
   ws.on('message', (message) => {
-    console.log(message + 'from ' + ws.id);
+    // console.log(message + 'from ' + ws.name);
     // for (let client of clients) {
     //   client.send(message);
     // }

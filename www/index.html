@@ -102,29 +102,32 @@
         }
       },
       created: function () {
-        this.currentSession = this.getCurrentSession('room');
-        console.log("Starting connection to WebSocket Server")
-        this.socket = new WebSocket(`ws://localhost:8000` + this.currentSession);
+        this.currentSession = this.getCurrentSession();
+        this.name = this.getCurrentSession();
+        console.log("Starting connection to WebSocket Server");
+        if (this.currentSession && this.name) {
+          this.socket = new WebSocket(`ws://localhost:8000` + this.currentSession);
+          this.socket.onmessage = function (event) {
+            console.log(event.data);
+          }.bind(this);
 
-        this.socket.onmessage = function (event) {
-          console.log(event.data);
-        }.bind(this);
-
-        this.socket.onopen = function (event) {
-          console.log('connected to ws server');
-          this.socket.send('hello world')
-        }.bind(this);
+          this.socket.onopen = function (event) {
+            console.log('connected to ws server');
+            this.socket.send('hello world')
+          }.bind(this);
+        }
       },
       methods: {
-        getCurrentSession: function (param) {
+        getCurrentSession: function () {
           const queryString = window.location.search;
           const urlParams = new URLSearchParams(queryString);
-          const sessionParam = urlParams.get(param) ? `?${param}=` + urlParams.get(param) : '';
+          const sessionParam = urlParams.get('room') ? `?room=` + urlParams.get('room') + '&name=' + urlParams.get('name') : '';
           return sessionParam;
         },
         setCurrentSession: function () {
           window.location.replace('?room=' + uid(8) + '&name=' + this.name);
-          this.currentSession = this.getCurrentSession('room');
+          this.currentSession = this.getCurrentSession();
+          console.log(this.currentSession)
         },
         sendMessage: function (message) {
           this.socket.send(message);
