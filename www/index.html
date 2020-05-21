@@ -5,21 +5,142 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pointing poker</title>
+  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    }
+
+    .join {
+      max-width: 300px;
+      padding: 2rem;
+      border-radius: 5px;
+      margin: 3rem auto;
+      border: 1px solid #dfecc7;
+    }
+
+    .join form {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .join input,
+    .join button {
+      border-radius: 3px;
+      height: 38px;
+      border: none;
+    }
+
+    .join input {
+      background-color: #f1fce0;
+      border: 1px solid #c6c7bc;
+      margin-bottom: 1rem;
+      width: 100%;
+      padding: 0 1rem;
+    }
+
+    .join button {
+      background-color: #72ad94;
+      color: #ffffff;
+      width: 50%;
+      font-weight: bold;
+    }
+
+    .join label {
+      width: 100%;
+      text-align: left;
+      margin-bottom: 0.5rem;
+    }
+
+    .invite-button-container button {
+      position: relative;
+      border: none;
+      height: 28px;
+      width: 100%;
+      background-color: #a9e0c9;
+    }
+
+    .invite-button-container button:focus {
+      outline: none;
+    }
+  </style>
 </head>
-<div id="messages"></div>
 
 <body>
-  <h1>Pointing poker</h1>
+  <div id="app">
+    <div class="join" v-if="!currentSession">
+      <form @submit.prevent="setCurrentSession()">
+        <label for="name">Name</label>
+        <input type="text" v-model="name" id="name">
+        <button type="submit">Join</button>
+      </form>
+    </div>
+    <div class="invite-button-container" v-if="currentSession">
+      <button>Copy invite link</button>
+    </div>
+    <div v-if="currentSession">
+      Connected to {{currentSession}}
+    </div>
+  </div>
+
   <script>
-    const messages = document.getElementById('messages');
-    let socket = new WebSocket('ws://localhost:8000');
-    socket.onmessage = (event) => {
-      messages.innerHTML += event.data;
+    const app = new Vue({
+      el: '#app',
+      data: function () {
+        return {
+          title: 'Vue',
+          name: '',
+          currentSession: '',
+          socket: null,
+        }
+      },
+      created: function () {
+        this.currentSession = this.getCurrentSession('room');
+        console.log("Starting connection to WebSocket Server")
+        this.socket = new WebSocket(`ws://localhost:8000` + this.currentSession);
+
+        this.socket.onmessage = function (event) {
+          console.log(event.data);
+        }.bind(this);
+
+        this.socket.onopen = function (event) {
+          console.log('connected to ws server');
+          this.socket.send('hello world')
+        }.bind(this);
+      },
+      methods: {
+        getCurrentSession: function (param) {
+          const queryString = window.location.search;
+          const urlParams = new URLSearchParams(queryString);
+          const sessionParam = urlParams.get(param) ? `?${param}=` + urlParams.get(param) : '';
+          return sessionParam;
+        },
+        setCurrentSession: function () {
+          window.location.replace('?room=' + uid(8) + '&name=' + this.name);
+          this.currentSession = this.getCurrentSession('room');
+        },
+        sendMessage: function (message) {
+          this.socket.send(message);
+        }
+      }
+    })
+
+    let IDX = 36;
+    let HEX = '';
+    while (IDX--) HEX += IDX.toString(36);
+    function uid(len) {
+      let str = '', num = len || 11;
+      while (num--) str += HEX[Math.random() * 36 | 0];
+      return str;
     }
-    socket.onopen = () => {
-      console.log('Connected!')
-      socket.send(42)
-    }
+
   </script>
 </body>
 
