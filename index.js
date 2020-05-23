@@ -31,15 +31,18 @@ function wsConnection(ws, req) {
         //ws.room = [...ws.room, urlQuery.room];
         ws.name = urlQuery.name;
     }
-    // ws.on('open', (msg) => {
-    //     console.log(msg);
-    // })
-    // ws.send(JSON.stringify({ event: 'ion', data: { name: 'ion', message: 'red' } }))
+
     ws.send(JSON.stringify({ event: 'joined', data: { name: ws.name, message: 'Welcome ' + ws.name } }))
 
-    ws.on('message', msg => {
+    ws.on('message', message => {
+        let msg = JSON.parse(message);
         console.log(msg)
+        switch (msg.event) {
+            case 'ping':
+                ws.send(JSON.stringify({ event: 'pong', data: { dateNow: Date.now() } }))
+        }
     })
+
     ws.on('newUser', (username) => {
         if (addedUser === true) {
             return;

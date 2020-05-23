@@ -9,16 +9,20 @@ const app = new Vue({
     },
     created: function () {
         const name = ('?name=' + this.name) || '';
+        let dateNow = Date.now();
         this.socket = new Ws(`ws://localhost:8000` + name);
         this.socket.listen('joined', (data) => {
             this.hello = data.message;
+        }).listen('pong', (data) => {
+            console.log('ping response took ' + (data.dateNow - dateNow) + 'ms')
         });
+        this.socket.send('ping', { message: 'ping request', dateNow: Date.now() });
     }
 })
 
 function Ws(url) {
+    let wsClient = new WebSocket(url);
     const wsConnection = new Promise((resolve, reject) => {
-        let wsClient = new WebSocket(url);
 
         wsClient.onopen = () => {
             resolve(wsClient);
