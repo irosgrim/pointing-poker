@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pointing poker</title>
+  <title>Document</title>
   <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
   <style>
     * {
@@ -75,76 +75,10 @@
 
 <body>
   <div id="app">
-    <div class="join" v-if="!currentSession">
-      <form @submit.prevent="setCurrentSession()">
-        <label for="name">Name</label>
-        <input type="text" v-model="name" id="name">
-        <button type="submit">Join</button>
-      </form>
-    </div>
-    <div class="invite-button-container" v-if="currentSession">
-      <button>Copy invite link</button>
-    </div>
-    <div v-if="currentSession">
-      Connected to {{currentSession}}
-    </div>
+    <h1>{{hello}}</h1>
+    this comes from server
   </div>
-
-  <script>
-    const app = new Vue({
-      el: '#app',
-      data: function () {
-        return {
-          title: 'Vue',
-          name: '',
-          currentSession: '',
-          socket: null,
-        }
-      },
-      created: function () {
-        this.currentSession = this.getCurrentSession();
-        this.name = this.getCurrentSession();
-        console.log("Starting connection to WebSocket Server");
-        if (this.currentSession && this.name) {
-          this.socket = new WebSocket(`ws://localhost:8000` + this.currentSession);
-          this.socket.onmessage = function (event) {
-            console.log(event.data);
-          }.bind(this);
-
-          this.socket.onopen = function (event) {
-            console.log('connected to ws server');
-            this.socket.send('hello world')
-          }.bind(this);
-        }
-      },
-      methods: {
-        getCurrentSession: function () {
-          const queryString = window.location.search;
-          const urlParams = new URLSearchParams(queryString);
-          const sessionParam = urlParams.get('room') ? `?room=` + urlParams.get('room') + '&name=' + urlParams.get('name') : '';
-          return sessionParam;
-        },
-        setCurrentSession: function () {
-          window.location.replace('?room=' + uid(8) + '&name=' + this.name);
-          this.currentSession = this.getCurrentSession();
-          console.log(this.currentSession)
-        },
-        sendMessage: function (message) {
-          this.socket.send(message);
-        }
-      }
-    })
-
-    let IDX = 36;
-    let HEX = '';
-    while (IDX--) HEX += IDX.toString(36);
-    function uid(len) {
-      let str = '', num = len || 11;
-      while (num--) str += HEX[Math.random() * 36 | 0];
-      return str;
-    }
-
-  </script>
+  <script src="src/app.js"></script>
 </body>
 
 </html>
